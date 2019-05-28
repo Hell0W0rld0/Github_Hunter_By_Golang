@@ -52,6 +52,7 @@ Payloads处，加入敏感关键词，如password、Password、Username、UserNa
 如已编译成可执行程序则，使用./Github_Hunter运行，Windows: Github_Hunter.exe。<br>
 未编译则使用go run Github_Hunter.go运行。<br>
 运行后搜索到敏感信息会发送邮件进行通知，如果长期监控，请使用计划任务crontab来设置运行频度。<br>
+已上传编译好的可执行文件，请查看仓库中的Github_Hunter_for_mac 和 Github_Hunter_for_linux。Windows版本请自行编译，谢谢！
 ## Screenshoot
 ### Result:
 ![Result](https://github.com/Hell0W0rld0/Github_Hunter_By_Golang/blob/master/screenshot.jpg)
