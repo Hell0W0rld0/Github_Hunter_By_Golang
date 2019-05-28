@@ -13,7 +13,7 @@ Linux,MacOS,Windows<br>
 5.`运行或编译前需要使用go get来安装依赖`<br>
 6.`go get github.com/gocolly/colly github.com/mattn/go-sqlite3 gopkg.in/cheggaaa/pb.v2 gopkg.in/gomail.v2 gopkg.in/ini.v1 `<br>
   `安装完成后即可使用 go build Github_Hunter.go 来生成可执行文件。`
-## Settings
+## 设置
 使用前，需要配置ini文件，把info.ini.example更改为info.ini,然后根据需要填写以下内容
 ### 例子
 `[KEYWORD]`<br>
@@ -51,3 +51,4 @@ Payloads处，加入敏感关键词，如password、Password、Username、UserNa
 ## 运行
 如已编译成可执行程序则，使用./Github_Hunter运行，Windows: Github_Hunter.exe。<br>
 未编译则使用go run Github_Hunter.go运行。<br>
+运行后搜索到敏感信息会发送邮件进行通知，如果长期监控，请使用计划任务crontab来设置运行频度。<br>
