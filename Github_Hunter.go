@@ -57,7 +57,7 @@ func main() {
 		}
 	}
 	links, codes := hunterGetData(c1, keywords, number)
-	if _, err := os.Stat("hunter.db"); err == nil {
+	if _, err := os.Stat("/opt/dbs/hunter.db"); err == nil {
 		fmt.Println("存在数据文件，开始进行新增数据查找......")
 		for _, k := range keywords {
 			searchPayload := strings.Split(k, "+")
@@ -68,7 +68,9 @@ func main() {
 					if searchedURL, _, _ := compareDBURL(links[i]); searchedURL == "" {
 						warningList = append(warningList, "<br><br><br>链接："+links[i]+"<br><br>")
 						warningList = append(warningList, "发现的关键词："+`<em style="color:red">`+searchPayload[0]+"</em> and "+`<em style="color:red">`+searchPayload[1]+"</em>"+`<br>简要代码如下：<br><div style="border:1px solid #bfd1eb;background:#f3faff">`+codes[i]+"</div>")
-						insertDB(links[i], codes[i])
+						date := getDate()
+						targetKeywords := searchPayload[0] + " AND " + searchPayload[1]
+						insertDB(date, targetKeywords, links[i], codes[i])
 					}
 				}
 			}
@@ -82,7 +84,9 @@ func main() {
 				if (strings.Contains(codes[i], searchPayload[0])) && (strings.Contains(codes[i], searchPayload[1])) {
 					codes[i] = strings.Replace(codes[i], searchPayload[0], `<em style="color:red">`+searchPayload[0]+"</em>", -1)
 					codes[i] = strings.Replace(codes[i], searchPayload[1], `<em style="color:red">`+searchPayload[1]+"</em>", -1)
-					insertDB(links[i], codes[i])
+					date := getDate()
+					targetKeywords := searchPayload[0] + " AND " + searchPayload[1]
+					insertDB(date, targetKeywords, links[i], codes[i])
 				}
 			}
 		}
@@ -111,6 +115,12 @@ func main() {
 	end := time.Now()
 	total := end.Sub(start)
 	fmt.Printf("本次耗时：%.2f 秒", total.Seconds())
+}
+
+func getDate() string {
+	d := time.Now()
+	date := strconv.Itoa(d.Year()) + "-" + strconv.Itoa(int(d.Month())) + "-" + strconv.Itoa(d.Day())
+	return date
 }
 
 func hunterLogin(gUser, gPassword string) *colly.Collector {
@@ -154,12 +164,12 @@ func hunterGetData(c1 *colly.Collector, keywords []string, page int) ([]string, 
 		DomainGlob:  "*github.*",
 		Parallelism: 10,
 	})
-	c2.OnHTML("div.code-list-item.col-12.py-4.code-list-item-public ", func(e2 *colly.HTMLElement) {
+	c2.OnHTML("div.hx_hit-code.code-list-item.d-flex.py-4.code-list-item-public ", func(e2 *colly.HTMLElement) {
 		s, _ := e2.DOM.Html()
-		if strings.Contains(s, `<div class="file-box blob-wrapper">`) {
-			tLink, _ := e2.DOM.Find("div.flex-auto.min-width-0.col-10 > a:nth-child(2)").Attr("href")
+		if strings.Contains(s, `<div class="file-box blob-wrapper my-2">`) {
+			tLink, _ := e2.DOM.Find("div.f4.text-normal > a:nth-child(1)").Attr("href")
 			tLink = "https://github.com" + tLink
-			tCode, _ := e2.DOM.Find("div.file-box.blob-wrapper").Html()
+			tCode, _ := e2.DOM.Find("div.file-box.blob-wrapper.my-2").Html()
 			tCode = strings.Replace(tCode, "<span class='text-bold'>", `<span style="color:red">`, -1)
 			link = append(link, tLink)
 			code = append(code, tCode)
@@ -203,21 +213,21 @@ func sendMail(receiver []string, sender, message, host, user, password string) {
 	fmt.Println("邮件发送成功！")
 }
 
-func insertDB(url, code string) {
-	db, err := sql.Open("sqlite3", "hunter.db")
+func insertDB(date, keywords, url, code string) {
+	db, err := sql.Open("sqlite3", "/opt/dbs/hunter.db")
 	checkError(err)
-	_, erro := db.Exec("CREATE TABLE IF NOT EXISTS Baseline (url varchar(1000) PRIMARY KEY, code varchar(10000) UNIQUE)")
+	_, erro := db.Exec("CREATE TABLE IF NOT EXISTS Baseline (date varchar(100), keywords varchar(100) ,url varchar(1000) PRIMARY KEY, code varchar(10000) UNIQUE)")
 	checkError(erro)
-	stmt, err := db.Prepare("INSERT OR REPLACE INTO Baseline (url, code) values (?,?)")
+	stmt, err := db.Prepare("INSERT OR REPLACE INTO Baseline (date, keywords, url, code) values (?,?,?,?)")
 	checkError(err)
-	_, er := stmt.Exec(url, code)
+	_, er := stmt.Exec(date, keywords, url, code)
 	checkError(er)
 }
 
 func compareDBURL(url string) (string, string, error) {
 	var searchedURL string
 	var searchedCode string
-	db, err := sql.Open("sqlite3", "hunter.db")
+	db, err := sql.Open("sqlite3", "/opt/dbs/hunter.db")
 	if err != nil {
 		fmt.Println("数据库连接失败！")
 		checkError(err)
@@ -233,7 +243,7 @@ func initInfomation() ([]string, []string) {
 		urls  []string
 		codes []string
 	)
-	db, err := sql.Open("sqlite3", "hunter.db")
+	db, err := sql.Open("sqlite3", "/opt/dbs/hunter.db")
 	if err != nil {
 		fmt.Println("数据库连接失败! ")
 		checkError(err)
