@@ -166,10 +166,10 @@ func hunterGetData(c1 *colly.Collector, keywords []string, page int) ([]string, 
 	})
 	c2.OnHTML("div.hx_hit-code.code-list-item.d-flex.py-4.code-list-item-public ", func(e2 *colly.HTMLElement) {
 		s, _ := e2.DOM.Html()
-		if strings.Contains(s, `<div class="file-box blob-wrapper my-2">`) {
+		if strings.Contains(s, `<div class="file-box blob-wrapper my-1">`) {
 			tLink, _ := e2.DOM.Find("div.f4.text-normal > a:nth-child(1)").Attr("href")
 			tLink = "https://github.com" + tLink
-			tCode, _ := e2.DOM.Find("div.file-box.blob-wrapper.my-2").Html()
+			tCode, _ := e2.DOM.Find("div.file-box.blob-wrapper.my-1").Html()
 			tCode = strings.Replace(tCode, "<span class='text-bold'>", `<span style="color:red">`, -1)
 			link = append(link, tLink)
 			code = append(code, tCode)
